@@ -1,5 +1,11 @@
-# DiffuVolume (Submission to IJCV)
-This is the implementation of the paper: [DiffuVolume: Diffusion Model for Volume based Stereo Matching](https://arxiv.org/pdf/2308.15989.pdf), Dian Zheng, Xiao-Ming Wu, Zuhao Liu, Jing-Ke Meng, Wei-Shi Zheng
+## DiffuVolume: Diffusion Model for Volume based Stereo Matching <br><sub>Official PyTorch Implementation of DiffuVolume. </sub>
+
+[Paper](https://arxiv.org/pdf/2308.15989.pdf) | [Personal HomePage](https://zhengdian1.github.io)
+
+### Updates
+[**2024.03.17**] The **pretrained weights** of DiffUIR are released in [link1](https://drive.google.com/drive/folders/1aCmW6-MBBkvJ4pQ3_AchxzzrezHmArEp?usp=drive_link) <br>
+[**2024.03.16**] The **whole training and testing codes** are released!!! <br>
+[**2023.08.31**] Our DiffUIR paper is submitted to IJCV <br>
 
 ## Introduction
 
@@ -81,10 +87,6 @@ sh run.sh
 python save_disp.py
 ```
 
-
-### Pretrained Model
-
-[Scene Flow, KITTI](https://drive.google.com/drive/folders/1aCmW6-MBBkvJ4pQ3_AchxzzrezHmArEp?usp=drive_link)
 
 ## Results on KITTI 2015 leaderboard
 [Leaderboard Link 2015](https://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo&eval_gt=noc&eval_area=all)
