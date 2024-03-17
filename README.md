@@ -14,7 +14,7 @@ Cost Volume-based stereo matching methods need to build a redundant cost volume,
 
 ## Environment
 * Python 3.8
-* Pytorch 1.10
+* Pytorch 2.0
 
 ## Install
 
