@@ -107,7 +107,7 @@ python save_disp.py
 
 ## Qualitative results on ETH3D and Middlebury
 
-### The left column is left image, the middle column is results of IGEV, and the right column is results of our DiffuVolume.
+### We show the zero-shot generalization results of our DiffuVolume compared with current SOTA methods IGEV.
 
 ![image](Images/zero.png)
 
