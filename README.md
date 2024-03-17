@@ -128,4 +128,4 @@ If you find this project helpful in your research, welcome to cite the paper.
 # Acknowledgements
 
 Thanks to Gangwei Xu for opening source of his excellent works ACVNet and IGEV-Stereo. Our work is inspired by these works and part of codes are migrated from [ACVNet](https://github.com/gangweiX/ACVNet), [IGEV](https://github.com/gangweiX/IGEV). <br>
-Thanks to Zhelun Shen for opening source of his excellent works ACVNet and IGEV-Stereo. Our work is inspired by this work and part of codes are migrated from [PCWNet](https://github.com/gallenszl/PCWNet).
+Thanks to Zhelun Shen for opening source of his excellent works PCWNet. Our work is inspired by this work and part of codes are migrated from [PCWNet](https://github.com/gallenszl/PCWNet).
