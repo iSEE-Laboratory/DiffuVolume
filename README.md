@@ -79,18 +79,18 @@ python save_disp.py
 ```
 
 
-
 ### Pretrained Model
 
 [Scene Flow](https://drive.google.com/drive/folders/1oY472efAgwCCSxtewbbA2gEtee-dlWSG?usp=share_link)
 
 ## Results on KITTI 2015 leaderboard
-[Leaderboard Link](http://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo)
+[Leaderboard Link 2015](https://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo&eval_gt=noc&eval_area=all)
 
 | Method | D1-bg (All) | D1-fg (All) | D1-all (All) | Runtime (s) |
 |:-:|:-:|:-:|:-:|:-:|
+| DiffuVolume | 1.35 % | 2.51 % | 1.54 % | 0.18 |
+| IGEV | 1.38 % | 2.67 % | 1.59 % | 0.18 |
 | ACVNet | 1.37 % | 3.07 % | 1.65 % | 0.20 |
-| LEAStereo | 1.40 % | 2.91 % | 1.65 % | 0.30 |
 | GwcNet | 1.74 % | 3.93 % | 2.11 % | 0.32 |
 | PSMNet | 1.86 % | 4.62 % | 2.32 % | 0.41 |
 
@@ -116,5 +116,5 @@ If you find this project helpful in your research, welcome to cite the paper.
 
 # Acknowledgements
 
-Thanks to Gangwei Xu for opening source of his excellent works ACVNet and IGEV-Stereo. Our work is inspired by these works and part of codes are migrated from [ACVNet](https://github.com/gangweiX/ACVNet), [IGEV](https://github.com/gangweiX/IGEV).
+Thanks to Gangwei Xu for opening source of his excellent works ACVNet and IGEV-Stereo. Our work is inspired by these works and part of codes are migrated from [ACVNet](https://github.com/gangweiX/ACVNet), [IGEV](https://github.com/gangweiX/IGEV). /
 Thanks to Zhelun Shen for opening source of his excellent works ACVNet and IGEV-Stereo. Our work is inspired by this work and part of codes are migrated from [PCWNet](https://github.com/gallenszl/PCWNet).
