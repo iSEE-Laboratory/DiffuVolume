@@ -3,9 +3,9 @@ This is the implementation of the paper: [DiffuVolume: Diffusion Model for Volum
 
 ## Introduction
 
-An informative and concise cost volume representation is vital for stereo matching of high accuracy and efficiency. In this paper, we present a novel cost volume construction method which generates attention weights from correlation clues to suppress redundant information and enhance matching-related information in the concatenation volume. To generate reliable attention weights, we propose multi-level adaptive patch matching to improve the distinctiveness of the matching cost at different disparities even for textureless regions.
+Cost Volume-based stereo matching methods need to build a redundant cost volume, which interferes with the model training and limitting the performance. In this work, we build a volume filter based on diffusion model, named DiffuVolume, which only uses the diffusion algorithm but not the heavy U-Net network to iteratively remove the redundant information in the cost volume. By adding the DiffuVolume into well-performed methods, we outperform all the published volume-based methods on Scene Flow, KITTI and zero-shot benchmarks.
 
-![image](https://github.com/iSEE-Laboratory/DiffuVolume/tree/main/Images/diffuvolume.jpg)
+![image](Images/diffuvolume.png)
 
 # How to use
 
