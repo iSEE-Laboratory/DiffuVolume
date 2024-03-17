@@ -40,40 +40,40 @@ Our DiffuVolume is a plug-and-play module for existing volume-based methods. Her
 
 Scene Flow (using pretrained model on ACVNet)
 ```
-cd SceneFlow_ACVNet
+cd SceneFlow
 python main.py
 ```
 
 KITTI2012 (using pretrained model on PCWNet)
 ```
-cd KITTI12_PCWNet
+cd KITTI12
 python main.py
 ```
 
 KITTI2015 (using pretrained model on IGEV-Stereo)
 ```
-cd KITTI15_IGEV
+cd KITTI15
 sh run.sh
 ```
 
 ## Test and Visualize
 Scene Flow
 ```
-cd SceneFlow_ACVNet
+cd SceneFlow
 python test_sceneflow_ddim.py
 python save_disp_sceneflow.py
 ```
 
 KITTI2012
 ```
-cd KITTI12_PCWNet
+cd KITTI12
 python test.py
 python save_disp_sceneflow_kitti12.py
 ```
 
 KITTI2015
 ```
-cd KITTI15_IGEV
+cd KITTI15
 sh run.sh
 python save_disp.py
 ```
@@ -81,7 +81,7 @@ python save_disp.py
 
 ### Pretrained Model
 
-[Scene Flow](https://drive.google.com/drive/folders/1oY472efAgwCCSxtewbbA2gEtee-dlWSG?usp=share_link)
+[Scene Flow, KITTI](https://drive.google.com/drive/folders/1aCmW6-MBBkvJ4pQ3_AchxzzrezHmArEp?usp=drive_link)
 
 ## Results on KITTI 2015 leaderboard
 [Leaderboard Link 2015](https://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo&eval_gt=noc&eval_area=all)
