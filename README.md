@@ -97,11 +97,19 @@ python save_disp.py
 | GwcNet | 1.74 % | 3.93 % | 2.11 % | 0.32 |
 | PSMNet | 1.86 % | 4.62 % | 2.32 % | 0.41 |
 
-## Qualitative results on Scene Flow Datasets, KITTI 2012 and KITTI 2015
+## Comparison with traditional diffusion based stereo matching
 
-### The left column is left image, and the right column is results of our ACVNet.
+| Method | EPE (px) | Bad1.0 | Runtime (s) | Params (M) |
+|:-:|:-:|:-:|:-:|:-:|
+| DiffuVolume | 0.46 | 4.97 % | 1.11 | 7.23 |
+| DDPM | 0.59 | 6.06 % | 265 | 60.07 |
+| DDIM | 0.63 | 6.13 % | 1.21 | 60.07 |
 
-![image](https://github.com/gangweiX/ACVNet/blob/main/imgs/acv_result.png)
+## Qualitative results on ETH3D and Middlebury
+
+### The left column is left image, the middle column is results of IGEV, and the right column is results of our DiffuVolume.
+
+![image](Images/zero.png)
 
 # Citation
 
