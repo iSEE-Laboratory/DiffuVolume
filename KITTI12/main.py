@@ -12,7 +12,6 @@ import torchvision.utils as vutils
 import torch.nn.functional as F
 import numpy as np
 import time
-from tensorboardX import SummaryWriter
 from datasets import __datasets__
 from models import __models__, model_loss
 from utils import *
@@ -37,7 +36,7 @@ parser.add_argument('--epochs', type=int, default=300, help='number of epochs to
 parser.add_argument('--lrepochs', type=str, default="200:10", help='the epochs to decay lr: the downscale rate')
 
 parser.add_argument('--logdir', default="./checkpoints/kitti12/test_all")
-parser.add_argument('--loadckpt', default='./checkpoints/kitti12/PCWNet_kitti12_best.ckpt')
+parser.add_argument('--loadckpt', default='./checkpoints/origin.ckpt')
 parser.add_argument('--resume', action='store_true', help='continue training the model')
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
 
@@ -49,10 +48,6 @@ args = parser.parse_args()
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
 os.makedirs(args.logdir, exist_ok=True)
-
-# create summary logger
-print("creating new summary file")
-logger = SummaryWriter(args.logdir)
 
 # dataset, dataloader
 StereoDataset = __datasets__[args.dataset]
@@ -108,11 +103,7 @@ def train():
         for batch_idx, sample in enumerate(TrainImgLoader):
             global_step = len(TrainImgLoader) * epoch_idx + batch_idx
             start_time = time.time()
-            do_summary = global_step % args.summary_freq == 0
             loss, scalar_outputs, image_outputs = train_sample(sample, compute_metrics=False)
-            # if do_summary:
-            #     save_scalars(logger, 'train', scalar_outputs, global_step)
-            #     save_images(logger, 'train', image_outputs, global_step)
             del scalar_outputs, image_outputs
             print('Epoch {}/{}, Iter {}/{}, train loss = {:.3f}, time = {:.3f}'.format(epoch_idx, args.epochs,
                                                                                        batch_idx,
@@ -128,11 +119,7 @@ def train():
          for batch_idx, sample in enumerate(TestImgLoader):
             global_step = len(TestImgLoader) * epoch_idx + batch_idx
             start_time = time.time()
-            # do_summary = global_step % args.summary_freq == 0
             loss, scalar_outputs, image_outputs = test_sample(sample, compute_metrics=True)
-            # if do_summary:
-            #     save_scalars(logger, 'test', scalar_outputs, global_step)
-            #     save_images(logger, 'test', image_outputs, global_step)
             avg_test_scalars.update(scalar_outputs)
             del scalar_outputs, image_outputs
             print('Epoch {}/{}, Iter {}/{}, test loss = {:.3f}, time = {:3f}'.format(epoch_idx, args.epochs,
@@ -144,7 +131,6 @@ def train():
          if  nowerror < error :
             bestepoch = epoch_idx
             error = avg_test_scalars["D1"][0]
-         save_scalars(logger, 'fulltest', avg_test_scalars, len(TrainImgLoader) * (epoch_idx + 1))
          print("avg_test_scalars", avg_test_scalars)
          print('MAX epoch %d total test error = %.5f' % (bestepoch, error))
          gc.collect()

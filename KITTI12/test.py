@@ -12,7 +12,6 @@ import torchvision.utils as vutils
 import torch.nn.functional as F
 import numpy as np
 import time
-from tensorboardX import SummaryWriter
 from datasets import __datasets__
 from models import __models__, model_loss
 from utils import *
@@ -21,7 +20,7 @@ import gc
 import skimage.io
 
 cudnn.benchmark = True
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '6'
 parser = argparse.ArgumentParser(description='PCW-Net: Pyramid Combination and Warping Cost Volume for Stereo Matching')
 parser.add_argument('--model', default='pwc_ddimgc', help='select a model structure', choices=__models__.keys())
 parser.add_argument('--maxdisp', type=int, default=192, help='maximum disparity')
