@@ -92,7 +92,7 @@ class KITTIDataset(Dataset):
             left_img = augmented[0]
             right_img = augmented[1]
 
-            right_img.flags.writeable = True
+            # right_img.flags.writeable = True
             if np.random.binomial(1,0.2):
               sx = int(np.random.uniform(35,100))
               sy = int(np.random.uniform(25,75))
