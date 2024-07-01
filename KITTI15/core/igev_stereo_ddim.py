@@ -162,7 +162,7 @@ class IGEVStereo_ddim(nn.Module):
         self.update_block = BasicMultiUpdateBlock(self.args, hidden_dims=args.hidden_dims)
 
         self.context_zqr_convs = nn.ModuleList([nn.Conv2d(context_dims[i], args.hidden_dims[i]*3, 3, padding=3//2) for i in range(self.args.n_gru_layers)])
-        self.time_embedding = DynamicHead(d_model=48)
+        self.time_embedding = DynamicHead(d_model=180)
         self.feature = Feature()
 
         self.stem_2 = nn.Sequential(
@@ -223,7 +223,7 @@ class IGEVStereo_ddim(nn.Module):
                 extract(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape)
         )
     
-    def model_predictions(self, coords0, coords1, flow_init, iters, net_list, inp_list, corr_fn, noise, t):
+    def model_predictions(self, coords0, coords1, flow_init, iters, net_list, inp_list, corr_fn, noise, t, stem_2x):
 
         noise = self.time_embedding(noise, t)
         # noise = noise + t.unsqueeze(1).unsqueeze(1).unsqueeze(1) / self.num_timesteps
@@ -236,17 +236,18 @@ class IGEVStereo_ddim(nn.Module):
         for itr in range(iters):
             coords1 = coords1.detach()   # 2,2,80,180,第二个2代表坐标索引XY
             flow = coords1 - coords0
-            corr = corr_fn(coords1, noise)    # index correlation volume, 2,36,80,180
+
+            corr = corr_fn(flow, coords1, noise.float())    # index correlation volume, 2,36,80,180
 
             with autocast(enabled=self.args.mixed_precision):
                 if self.args.n_gru_layers == 3 and self.args.slow_fast_gru: # Update low-res GRU
                     net_list = self.update_block(net_list, inp_list, iter32=True, iter16=False, iter08=False, update=False)
                 if self.args.n_gru_layers >= 2 and self.args.slow_fast_gru:# Update low-res GRU and mid-res GRU
                     net_list = self.update_block(net_list, inp_list, iter32=self.args.n_gru_layers==3, iter16=True, iter08=False, update=False)
-                net_list, up_mask, delta_flow = self.update_block(net_list, inp_list, corr, flow, iter32=self.args.n_gru_layers==3, iter16=self.args.n_gru_layers>=2)
+                net_list, up_mask, delta_flow = self.update_block(net_list, inp_list, corr, flow, iter16=self.args.n_gru_layers==3, iter08=self.args.n_gru_layers>=2)
 
             # in stereo mode, project flow onto epipolar
-            delta_flow[:,1] = 0.0   #2,2,80,180,stereo matching do not need Y difference, set0
+            # delta_flow[:,1] = 0.0   #2,2,80,180,stereo matching do not need Y difference, set0
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
@@ -259,26 +260,27 @@ class IGEVStereo_ddim(nn.Module):
             if up_mask is None:   #2,144,80,180
                 flow_up = upflow8(coords1 - coords0)
             else:
-                flow_up = self.upsample_flow(coords1 - coords0, up_mask)
+                flow_up = self.upsample_disp(coords1 - coords0, up_mask, stem_2x)
             flow_up = flow_up[:,:1]
         pred = flow_up
         b, c, h, w = pred.shape
-        disp_net = torch.clamp(pred, -w + 1, 0)
+
+        disp_net = torch.clamp(pred, 0, 48-1)
  
         disp_net = F.interpolate(disp_net, size=(h // 4, w // 4), mode='bilinear') / 4
-        true_coords1 = coords0[:, :1] + disp_net
+        true_coords1 = coords0 + disp_net
         b, c, h, w = true_coords1.shape
-        true_coords1 = torch.clamp(true_coords1, 0, w-1)
-        disp_volume = torch.zeros([b, w, h, w], dtype=torch.float32, device=true_coords1.device)
+        true_coords1 = torch.clamp(true_coords1, 0, 48-1)
+        disp_volume = torch.zeros([b, 48, h, w], dtype=torch.float32, device=true_coords1.device)
         real = torch.floor(true_coords1).long()
-        mask = real == w - 1
+        mask = real == 47
+        # print(real[:, 0, 63, 127])
         coff = real - true_coords1 + 1
 
-        disp_volume = disp_volume.view(b, w, -1).scatter_(1, real.view(b, 1, -1), coff.view(b, 1, -1)).reshape(b, w, h, w)
-
-        disp_volume = disp_volume.view(b, w, -1).scatter_(1, torch.clamp(real + 1, 0, w - 1).view(b, 1, -1),
-                                                           (1 - coff).view(b, 1, -1)).reshape(b, w, h, w)
-        fuzhi = torch.zeros([b, w, h, w], dtype=torch.float32, device=true_coords1.device)
+        disp_volume = disp_volume.view(b, 48, -1).scatter_(1, real.view(b, 1, -1), coff.view(b, 1, -1)).reshape(b, 48, h, w)
+        disp_volume = disp_volume.view(b, 48, -1).scatter_(1, torch.clamp(real + 1, 0, 47).view(b, 1, -1),
+                                                               (1 - coff).view(b, 1, -1)).reshape(b, 48, h, w)
+        fuzhi = torch.zeros([b, 48, h, w], dtype=torch.float32).cuda()
         fuzhi[:, -1, :, :] = 1
         x_start = torch.where(mask.cuda() == True, fuzhi, disp_volume)
 
@@ -290,7 +292,7 @@ class IGEVStereo_ddim(nn.Module):
         return pred_noise, x_start, pred, coords1
 
     @torch.no_grad()
-    def ddim_sample(self, coords0, coords1, flow_init, iters, net_list, inp_list, corr_fn, used, asd):
+    def ddim_sample(self, coords0, coords1, flow_init, iters, net_list, inp_list, corr_fn, used, asd, stem_2x):
         batch, d, h, w = asd.shape
         total_timesteps, sampling_timesteps, eta = self.num_timesteps, self.sampling_timesteps, self.ddim_sampling_eta
         
@@ -308,7 +310,7 @@ class IGEVStereo_ddim(nn.Module):
         for time, time_next in time_pairs:
             time_cond = torch.full((batch,), time, device=asd.device, dtype=torch.long)
             #img = self.q_sample(img, time_cond)
-            pred_noise, x_start, disp, coords1 = self.model_predictions(coords0, coords1, flow_init, iters, net_list, inp_list, corr_fn, img, time_cond)
+            pred_noise, x_start, disp, coords1 = self.model_predictions(coords0, coords1, flow_init, iters, net_list, inp_list, corr_fn, img, time_cond, stem_2x)
 
             if self.renewal:  # filter
                 dif = torch.abs(disp - used)
@@ -417,8 +419,10 @@ class IGEVStereo_ddim(nn.Module):
 
         disp_volume_final = (disp_volume_final * 2 - 1) * self.scale
         
+        disp = init_disp
+
         if not self.training:
-            pred = self.ddim_sample(disp , flow_init, iters, net_list, inp_list, geo_fn, flow_full, disp_volume_final)
+            pred = self.ddim_sample(disp, disp, flow_init, iters, net_list, inp_list, geo_fn, flow_full, disp_volume_final, stem_2x)
             
             return pred, pred
             
@@ -431,7 +435,6 @@ class IGEVStereo_ddim(nn.Module):
         noisy = ((noisy / self.scale) + 1) / 2.
         noisy = torch.tensor(noisy, dtype=torch.float32)
         
-        disp = init_disp
         disp_preds = []
         
         # GRUs iterations to update disparity

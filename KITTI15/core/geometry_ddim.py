@@ -33,8 +33,9 @@ class Combined_Geo_Encoding_Volume:
     def __call__(self, disp, coords, noisy):
         r = self.radius
         b, _, h, w = disp.shape
-        batch, h1, w1, _ = coords.shape
+        batch, _, h1, w1 = coords.shape
         noisy = noisy.reshape(batch*h1*w1, 1, 1, -1)
+  
         noise = []
         noise.append(noisy)
         for i in range(self.num_levels):
@@ -51,6 +52,7 @@ class Combined_Geo_Encoding_Volume:
             y0 = torch.zeros_like(x0)
 
             disp_lvl = torch.cat([x0,y0], dim=-1)
+    
             geo_volume = geo_volume * noi
             geo_volume = bilinear_sampler(geo_volume, disp_lvl)
             geo_volume = geo_volume.view(b, h, w, -1)

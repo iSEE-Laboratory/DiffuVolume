@@ -7,8 +7,10 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from pathlib import Path
-from igev_stereo import IGEVStereo
+from core.igev_stereo import IGEVStereo, autocast
+from core.igev_stereo_ddim import IGEVStereo_ddim
 from utils.utils import InputPadder
+import torch.nn.functional as F
 from PIL import Image
 from matplotlib import pyplot as plt
 import os
@@ -26,7 +28,14 @@ def load_image(imfile):
     return img[None].to(DEVICE)
 
 def demo(args):
-    model = torch.nn.DataParallel(IGEVStereo(args), device_ids=[0])
+    model_origin = torch.nn.DataParallel(IGEVStereo(args), device_ids=[0])
+    model_origin.load_state_dict(torch.load(args.pretrained_ckpt))
+
+    model_origin = model_origin.module
+    model_origin.to(DEVICE)
+    model_origin.eval()
+
+    model = torch.nn.DataParallel(IGEVStereo_ddim(args), device_ids=[0])
     model.load_state_dict(torch.load(args.restore_ckpt))
 
     model = model.module
@@ -46,8 +55,18 @@ def demo(args):
             image2 = load_image(imfile2)
             padder = InputPadder(image1.shape, divis_by=32)
             image1, image2 = padder.pad(image1, image2)
-            disp = model(image1, image2, iters=args.valid_iters, test_mode=True)
-            disp = padder.unpad(disp)
+            mixed_prec=False
+            iters=32
+            with autocast(enabled=mixed_prec):
+                flow_pr = model_origin(image1, image2, iters=iters, test_mode=True)
+            
+            b, c, h, w = image1.shape
+            flow_ori = torch.clamp(flow_pr, 0, w-1)
+            flow_4 = F.interpolate(flow_ori, size=(h // 4, w // 4), mode='bilinear') / 4
+        
+            with autocast(enabled=mixed_prec):
+                _, disp = model(image1, image2, flow_pr, flow_4, iters=iters, test_mode=True)
+            disp = padder.unpad(disp.unsqueeze(1)).cpu().squeeze(0)
             file_stem = os.path.join(output_directory, imfile1.split('/')[-1])
             disp = disp.cpu().numpy().squeeze()
             disp = np.round(disp * 256).astype(np.uint16)
@@ -56,7 +75,8 @@ def demo(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--restore_ckpt', help="restore checkpoint", default='./pretrained_models/kitti/kitti15.pth')
+    parser.add_argument('--pretrained_ckpt', help="restore checkpoint", default='./pretrained_models/kitti/kitti15.pth')
+    parser.add_argument('--restore_ckpt', help="restore checkpoint", default='./checkpoints/10000_igev-stereo.pth')
     parser.add_argument('--save_numpy', action='store_true', help='save output as numpy arrays')
     parser.add_argument('-l', '--left_imgs', help="path to all first (left) frames", default="/mnt/Datasets/KITTI/2015/testing/image_2/*_10.png")
     parser.add_argument('-r', '--right_imgs', help="path to all second (right) frames", default="/mnt/Datasets/KITTI/2015/testing/image_3/*_10.png")

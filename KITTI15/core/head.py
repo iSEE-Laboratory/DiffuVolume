@@ -73,10 +73,14 @@ class DynamicHead(nn.Module):
 
     def forward(self, noisy, t):
         time_emb = self.time_mlp(t)
-        scale_shift = self.block_time_mlp(time_emb).unsqueeze(-1).unsqueeze(-1)
-        # b, d, h, w = noisy.shape
-        # scale_shift_z = F.interpolate(scale_shift.unsqueeze(0), (d), mode="linear").squeeze(1)#.unsqueeze(-1).unsqueeze(-1)
-        noisy = noisy + scale_shift
+        scale_shift = self.block_time_mlp(time_emb)#.unsqueeze(-1).unsqueeze(-1)
+        b, d, h, w = noisy.shape
+        scale_shift_z = F.interpolate(scale_shift.unsqueeze(0), (d), mode="linear").squeeze(1).unsqueeze(-1).unsqueeze(-1)
+  
+        # print(noisy.shape)
+        # print(scale_shift.shape)
+        # raise
+        noisy = noisy + scale_shift_z
         #noisy = noisy * scale_shift
         # scale, shift = scale_shift.chunk(2, dim=1)
         # volume = volume * (scale + 1) + shift

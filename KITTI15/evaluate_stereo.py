@@ -86,7 +86,7 @@ def validate_kitti(model_origin, model, iters=32, mixed_prec=False):
         image1, image2 = padder.pad(image1, image2)
 
         with autocast(enabled=mixed_prec):
-            _, flow_pr = model_origin(image1, image2, iters=iters, test_mode=True)
+            flow_pr = model_origin(image1, image2, iters=iters, test_mode=True)
             
 
         b, c, h, w = image1.shape
@@ -95,7 +95,7 @@ def validate_kitti(model_origin, model, iters=32, mixed_prec=False):
         
         with autocast(enabled=mixed_prec):
             start = time.time()
-            flow_refine = model(image1, image2, flow_pr, flow_4, iters=iters, test_mode=True)
+            _, flow_refine = model(image1, image2, flow_pr, flow_4, iters=iters, test_mode=True)
             end = time.time()
 
         if val_id > 50:
