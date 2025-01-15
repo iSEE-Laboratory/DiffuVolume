@@ -3,6 +3,7 @@
 [Paper](https://arxiv.org/pdf/2308.15989.pdf) | [Personal HomePage](https://zhengdian1.github.io)
 
 ### Updates
+[**2025.01.15**] 🎉🎉🎉 DiffuVolume is finally accepted by IJCV2025 after a long wait! 🎉🎉🎉 <br>
 [**2024.05.06**] We refine our code for better user experience <br>
 [**2024.03.17**] The **pretrained weights** of DiffuVolume are released in [link1](https://drive.google.com/drive/folders/1aCmW6-MBBkvJ4pQ3_AchxzzrezHmArEp?usp=drive_link) <br>
 [**2024.03.16**] The **whole training and testing codes** are released!!! <br>
